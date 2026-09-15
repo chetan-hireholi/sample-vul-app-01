@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>vul-app-01 — Vulnerable Demo App</title>
+  <!--
+    VULN-HTML-01: No Content-Security-Policy meta tag
+    VULN-HTML-02: No X-Frame-Options equivalent (no `frame-ancestors`)
+    VULN-HTML-03: External script loaded without SRI hash (supply-chain attack)
+    VULN-HTML-04: Inline script with eval()-like behaviour
+    VULN-HTML-05: Reflects URL query parameter directly into DOM (XSS)
+  -->
+  <style>
+    body { font-family: monospace; background: #111; color: #0f0; padding: 2rem; }
+    h1   { color: #f00; }
+    code { background: #222; padding: 2px 6px; border-radius: 3px; }
+    table { border-collapse: collapse; width: 100%; }
+    td,th { border: 1px solid #444; padding: 6px 10px; text-align: left; }
+    th { background: #222; color: #0ff; }
+    .warn { color: #ff0; }
+  </style>
+</head>
+<body>
+  <h1>&#9888; vul-app-01 — Intentionally Vulnerable Application</h1>
+  <p class="warn">This application is for security education and penetration testing ONLY.</p>
+
+  <!-- VULN-HTML-03: No SRI hash on external script -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <h2>Available Endpoints</h2>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Vulnerability</th><th>CVE / OWASP</th></tr>
+    <tr><td>POST</td><td><code>/api/auth/login</code></td><td>Hardcoded creds, SQL injection, password in response</td><td>A07, A03</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/register</code></td><td>Mass assignment, plaintext password storage</td><td>A04, A02</td></tr>
+    <tr><td>GET</td> <td><code>/api/auth/jwt-none</code></td><td>JWT alg:none bypass</td><td>CVE-2015-9235</td></tr>
+    <tr><td>GET</td> <td><code>/api/users/:id</code></td><td>BOLA/IDOR, SQL injection</td><td>API3:2023</td></tr>
+    <tr><td>POST</td><td><code>/api/users/update</code></td><td>Mass assignment, SQL injection</td><td>A04, A03</td></tr>
+    <tr><td>GET</td> <td><code>/api/admin/users</code></td><td>No authentication, full PII dump</td><td>A01, A02</td></tr>
+    <tr><td>GET</td> <td><code>/api/injection/sql</code></td><td>SQL injection (UNION, boolean-blind)</td><td>A03, CWE-89</td></tr>
+    <tr><td>POST</td><td><code>/api/injection/cmd</code></td><td>Command injection (RCE)</td><td>A03, CWE-78</td></tr>
+    <tr><td>POST</td><td><code>/api/injection/nosql</code></td><td>NoSQL-style injection</td><td>A03</td></tr>
+    <tr><td>GET</td> <td><code>/api/files/read</code></td><td>Directory traversal</td><td>CWE-22, A01</td></tr>
+    <tr><td>POST</td><td><code>/api/files/upload</code></td><td>Unrestricted file upload</td><td>CWE-434, A04</td></tr>
+    <tr><td>POST</td><td><code>/api/template/render</code></td><td>EJS SSTI → RCE</td><td>CVE-2022-29078</td></tr>
+    <tr><td>POST</td><td><code>/api/deserialize</code></td><td>node-serialize RCE</td><td>CVE-2017-5941</td></tr>
+    <tr><td>POST</td><td><code>/api/deserialize/eval</code></td><td>eval() RCE</td><td>CWE-95</td></tr>
+    <tr><td>POST</td><td><code>/api/merge</code></td><td>Prototype pollution (lodash)</td><td>CVE-2019-10744</td></tr>
+    <tr><td>GET</td> <td><code>/api/config</code></td><td>Dumps all secrets + env vars</td><td>A02, A05</td></tr>
+    <tr><td>GET</td> <td><code>/api/debug/routes</code></td><td>Full route enumeration</td><td>A05</td></tr>
+  </table>
+
+  <!-- VULN-HTML-05: DOM XSS — reflects ?name= directly into innerHTML -->
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const name   = params.get('name') || 'Guest';
+    // VULN: user-controlled value written with innerHTML — DOM XSS
+    document.write('<p>Welcome back, ' + name + '!</p>');
+  </script>
+</body>
+</html>

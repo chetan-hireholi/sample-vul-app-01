@@ -1,0 +1,24 @@
+# ============================================================
+#  gitignore.example — What the .gitignore SHOULD contain
+#  but intentionally does NOT in the vulnerable application.
+#
+#  VULN-GIT-01: .env committed (secrets in version control)
+#  VULN-GIT-02: *.db committed (PII in version control)
+#  VULN-GIT-03: Private keys not excluded
+#  VULN-GIT-04: node_modules present (forces use of old, pinned deps)
+# ============================================================
+
+# These should be ignored but are intentionally omitted in vul-app-01:
+# .env
+# *.db
+# db/*.db
+# *.pem
+# *.key
+# *.p12
+# uploads/
+# node_modules/
+
+# Only these are "forgotten" to be ignored:
+dist/
+build/
+coverage/

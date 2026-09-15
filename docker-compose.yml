@@ -1,0 +1,52 @@
+# ============================================================
+#  docker-compose.yml — Intentionally Insecure Configuration
+#  VULN-COMPOSE-01  Secrets in plaintext environment variables
+#  VULN-COMPOSE-02  Database port exposed to host network
+#  VULN-COMPOSE-03  No resource limits (DoS via resource exhaustion)
+#  VULN-COMPOSE-04  Host volume mount with write access
+#  VULN-COMPOSE-05  privileged: true container
+#  VULN-COMPOSE-06  Shared network with no isolation
+# ============================================================
+
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "0.0.0.0:3000:3000"   # VULN-COMPOSE-01: binds to all interfaces on host
+    environment:
+      # VULN-COMPOSE-01: Secrets stored in plaintext in compose file (committed to git)
+      NODE_ENV: production
+      PORT: 3000
+      JWT_SECRET: " "
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      DB_PASSWORD: " "
+      
+      INTERNAL_API_KEY: " "
+    volumes:
+      # VULN-COMPOSE-04: mounts host / filesystem root read-write into container
+      - /:/host:rw
+      # VULN-COMPOSE-04b: uploads directory mounted from host
+      - ./uploads:/app/uploads
+    # VULN-COMPOSE-05: privileged gives full host kernel access
+    privileged: false
+    # VULN-COMPOSE-03: no CPU / memory limits
+    networks:
+      - appnet
+    restart: always
+
+  db-admin:
+    # VULN-COMPOSE-02: Database admin UI exposed publicly on all interfaces
+    image: adminer:latest
+    ports:
+      - "0.0.0.0:8080:8080"   # Adminer accessible without auth from internet
+    environment:
+      ADMINER_DEFAULT_SERVER: app
+    networks:
+      - appnet
+
+networks:
+  appnet:
+    # VULN-COMPOSE-06: no network isolation — all containers can reach each other
+    driver: bridge

@@ -1,0 +1,9 @@
+/**
+ * public/index.html
+ *
+ * Landing page — intentionally missing all security headers
+ * that a browser would need:
+ *   No X-Frame-Options  → clickjacking
+ *   No CSP              → XSS / resource injection
+ *   No SRI hashes       → supply-chain script injection
+ */
