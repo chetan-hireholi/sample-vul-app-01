@@ -8,7 +8,7 @@
 #  VULN-COMPOSE-06  Shared network with no isolation
 # ============================================================
 
-version: '3.8'
+version: '3.9'
 
 services:
   app:
